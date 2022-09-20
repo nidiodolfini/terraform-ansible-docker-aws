@@ -1,70 +1,69 @@
 - hosts: all
   become: yes
   tasks:
-    - name: alterando nome dos hosts
-      hostname:
-        name: "{{ new_hostname }}"
-    - name: instalar dependencias do docker
-      apt: # apt-get install apt-transport-https 
-        name: "{{item}}"
-        state: present 
-        update_cache: yes
-      loop:
-        - apt-transport-https #0
-        - ca-certificates #1
-        - curl
-        - gnupg-agent
-        - software-properties-common  
+  - name: alterando nome dos hosts
+    hostname:
+      name: "{{ new_hostname }}"
+  - name: instalar dependencias do docker
+    apt: # apt-get install apt-transport-https 
+      name: "{{item}}"
+      state: present 
+      update_cache: yes
+    loop:
+      - apt-transport-https #0
+      - ca-certificates #1
+      - curl
+      - gnupg-agent
+      - software-properties-common  
 
-    - name: adicionar chave GPG
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
+  - name: adicionar chave GPG
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
 
-    - name: adicionar repositório Docker de instalador do docker
-      apt_key:
-        url: deb https://download.docker.com/linux/ubuntu bionic stable
-        state: present
+  - name: adicionar repositório Docker de instalador do docker
+    apt_repository:
+      repo: deb https://download.docker.com/linux/ubuntu bionic stable
+      state: present
 
-    - name: instala docker
-      apt:
-        name: "{{item}}"
-        state: latest
-        update_cache: yes
-      loop:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
+  - name: instala docker
+    apt:
+      name: "{{item}}"
+      state: latest
+      update_cache: yes
+    loop:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
 
-    - name: instalar python e pip ansible precisa para poder iniciar o Docker, executar
-      apt:
-        name: "{{item}}"
-        state: latest
-        update_cache: yes
-      loop:
-        - python3
-        - pip
+  - name: instalar python e pip ansible precisa para poder iniciar o Docker, executar
+    apt:
+      name: "{{item}}"
+      state: latest
+      update_cache: yes
+    loop:
+      - python3
+      - pip
 
-    - name: Instalar recurso docker ansible precisa
-      pip:
-        name: docker
+  - name: Instalar recurso docker ansible precisa
+    pip:
+      name: docker
 
   handlers:
     - name: reiniciar docker
       service: 
         name: docker 
         state: restarted
-        
 - hosts: all
   become: yes
   tasks:        
-- name: Criar container 
-  docker_container:
-    name: meucontainer
-    image: nidio/clinica
-    expose:
-    - 9000
-    ports:
-    - "9000:9000"
-    state: present
-  with_sequence: count=2
+  - name: Criar container 
+    docker_container:
+      name: meucontainer
+      image: nidio/clinica
+      expose:
+      - 9000
+      ports:
+      - "9000:9000"
+      state: started
+    
