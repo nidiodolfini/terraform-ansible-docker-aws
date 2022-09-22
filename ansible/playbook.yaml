@@ -1,10 +1,11 @@
 - hosts: all
-  become: yes
+  become: yes #vira sudo sempre que precisar
   tasks:
   - name: alterando nome dos hosts
     hostname:
       name: "{{ new_hostname }}"
-  - name: instalar dependencias do docker
+
+  - name: instalar dependencias do docker e java para compilar
     apt: # apt-get install apt-transport-https 
       name: "{{item}}"
       state: present 
@@ -14,14 +15,16 @@
       - ca-certificates #1
       - curl
       - gnupg-agent
-      - software-properties-common  
+      - software-properties-common
+      - openjdk-17-jdk
+      - maven  
 
   - name: adicionar chave GPG
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
 
-  - name: adicionar repositório Docker de instalador do docker
+  - name: adicionar repositório d0 instalador do docker
     apt_repository:
       repo: deb https://download.docker.com/linux/ubuntu bionic stable
       state: present
@@ -35,6 +38,7 @@
       - docker-ce
       - docker-ce-cli
       - containerd.io
+      - docker-compose
 
   - name: instalar python e pip ansible precisa para poder iniciar o Docker, executar
     apt:
@@ -54,16 +58,36 @@
       service: 
         name: docker 
         state: restarted
+
 - hosts: all
   become: yes
   tasks:        
-  - name: Criar container 
-    docker_container:
-      name: meucontainer
-      image: nidio/clinica
-      expose:
-      - 9000
-      ports:
-      - "9000:9000"
-      state: started
-    
+  - name: clone pasta target
+    ansible.builtin.git:
+      # o repositório que vamos clonar
+      repo: https://github.com/nidiodolfini/Summer-Week-Backend.git
+      # onde vamos clonar
+      dest: /home/ubuntu/Summer-Week-Backend/
+      # qual é a branch que vamos clonar
+      version: master
+      # aqui estopu dizendo que quero seja feito update sempre que rodar a tarefa
+      update: yes
+      # force pq eu quero, baixa e pronto. eu mandei.
+      force: yes
+
+  - name: mvn install
+    shell:
+      cmd: "sudo mvn install"
+      chdir: /home/ubuntu/Summer-Week-Backend/
+
+  - name: Subir docker-compose mysql
+    become: true
+    shell:
+      cmd: "docker-compose -f docker-compose-mysql.yml up -d"
+      chdir: /home/ubuntu/Summer-Week-Backend/
+
+  - name: Subir docker-compose backend
+    become: true
+    shell:
+      cmd: "docker-compose -f docker-compose.yml up -d"
+      chdir: /home/ubuntu/Summer-Week-Backend/

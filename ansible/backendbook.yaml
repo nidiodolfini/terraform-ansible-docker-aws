@@ -1,0 +1,21 @@
+- hosts: backend
+  become: yes #vira sudo sempre que precisar
+  tasks:
+  - name: instalar java e maven
+    apt:
+      name: "{{item}}"
+      state: latest
+      update_cache: yes
+    loop:
+      - openjdk-17-jdk
+      - maven
+
+  - name: mvn install
+    shell:
+      cmd: "mvn install"
+      chdir: /home/ubuntu/Summer-Week-Backend/
+
+  - name: Subir backend
+    shell:
+      cmd: "nohup java -Dspring.profiles.active=aws -jar BibliotecaDeFilmes-0.0.1-SNAPSHOT.jar &"
+      chdir: /home/ubuntu/Summer-Week-Backend/target/

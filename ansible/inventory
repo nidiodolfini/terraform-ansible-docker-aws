@@ -1,6 +1,12 @@
 [docker]
-docker1 ansible_host=10.0.1.190 new_hostname=docker1
-docker2 ansible_host=10.0.1.190 new_hostname=docker2
+docker1 ansible_host=10.0.1.170 new_hostname=docker1
+docker2 ansible_host=10.0.1.32 new_hostname=docker2
+
+[backend]
+docker1 ansible_host=10.0.1.170 
+
+[bancodedados]
+docker2 ansible_host=10.0.1.32
 
 
 [all:vars]
@@ -8,5 +14,8 @@ ansible_python_interpreter=/usr/bin/python3
 ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new'
 ansible_user=ubuntu
 ansible_ssh_private_key_file=/home/ubuntu/.ssh/terraform-aws
-#ansible-playbook playbook.yaml -i inventory
+
 #ansible -i inventory all -m ping
+#ansible-playbook playbook.yaml -i inventory
+#ansible-playbook mysqlbook.yaml -i inventory
+#ansible-playbook backendbook.yaml -i inventory

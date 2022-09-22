@@ -1,0 +1,50 @@
+- hosts: bancodedados
+  vars:
+    mysql_root_password: r00tM)DT!   
+  become: yes
+  tasks:
+  - name: instalar myssql
+    apt: 
+      name: "{{ item }}"
+      update_cache: yes
+    loop:
+      - python3-mysqldb
+      - mysql-server
+
+  - name: iniciar mysql
+    service:
+      name: mysql
+      state: started
+      enabled: true
+
+  - name: habilitar hosts remotos
+    shell:
+      cmd: sed -i -e"s/^bind-address\s*=\s*127.0.0.1/bind-address = 0.0.0.0/" /etc/mysql/mysql.conf.d/mysqld.cnf
+
+  - name: reiniciar mysql
+    service:
+      name: mysql
+      state: restarted
+      enabled: true    
+  
+  - name: configurar usuário
+    mysql_user: 
+      name: root 
+      host: "{{ item }}" 
+      password: "{{ mysql_root_password }}"
+      login_user: root
+      login_password: "{{ mysql_root_password }}"
+      check_implicit_admin: yes
+      priv: "*.*:ALL,GRANT"
+    with_items:
+      - "{{ ansible_hostname }}"
+      - 127.0.0.1
+      - localhost
+      - 0.0.0.0/0
+
+  - name: cria databese
+    mysql_db: 
+      name: filmes
+      state: present
+      login_user: root
+      login_password: "{{ mysql_root_password }}"     
